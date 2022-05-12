@@ -17,7 +17,7 @@ def get_lectures(year: str, semester: str, major: str, db: Session = Depends(get
                 .filter(Learned.student_id == student_id) \
                 .all()
     
-    learned_ids = list(map(lambda x: x.id, learned))
+    learned_ids = list(map(lambda x: x.lecture_id, learned))
     for lecture in lectures:
         lecture.learned = True if lecture.id in learned_ids else False
     return lectures
