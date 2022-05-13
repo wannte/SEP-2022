@@ -22,7 +22,7 @@ def check_user_exists(student_id: str, db: Session = Depends(get_db)):
 
 @rt.post('')
 def sign_up(student_id: str = Body(...), major: str = Body(...), db: Session = Depends(get_db)):
-    if db.query(User).filter(User.student_id == student_id).exists():
+    if db.query(User).filter(User.student_id == student_id).first():
         return JSONResponse(content={'ok': False, 'message': '이미 존재하는 유저입니다.'}, status_code=400)
     user = User(student_id = student_id, major = major)
     db.add(user)
@@ -39,26 +39,35 @@ def change_major(major: str = Body(...) , student_id: str = Header(...), db: Ses
 
 @rt.get('/lectures')
 def get_user_lectures(year: str, semester: str, student_id: str = Header(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(student_id == student_id).first()
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'})
     learneds = db.query(Learned, Lecture) \
-        .join(Learned.lecture_id == Lecture.id) \
-        .filter(Learned.student_id == student_id) \
+        .join(Lecture, Learned.lecture_id == Lecture.id) \
+        .filter(Learned.student_id == user.id) \
         .filter(Lecture.year == year) \
         .filter(Lecture.semester == semester) \
         .all()
-    return list(map(lambda x: x.lecture, learneds))
+    return list(map(lambda x: x.Lecture, learneds))
 
 @rt.post('/lectures/{lecture_id}')
 def add_lecture(lecture_id: int, student_id: str = Header(...), db: Session = Depends(get_db)):
-    if db.query(Learned).filter(Learned.lecture_id == lecture_id).filter(Learned.student_id == student_id).exists():
+    user = db.query(User).filter(student_id == student_id).first()
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'})
+    if db.query(Learned).filter(Learned.lecture_id == lecture_id).filter(Learned.student_id == student_id).first():
         return JSONResponse(content={'ok': False, 'message': '이미 등록된 과목입니다.'}, status_code=400)
-    learned = Learned(student_id = student_id, lecture_id = lecture_id)
+    learned = Learned(student_id = user.id, lecture_id = lecture_id)
     db.add(learned)
     db.commit()
     return {'ok': True}
 
 @rt.delete('/lectures/{lecture_id}')
 def delete_lecture(lecture_id: int, student_id: str = Header(...), db: Session = Depends(get_db)):
-    learned = db.query(Learned).filter(Learned.lecture_id == lecture_id).filter(Learned.student_id == student_id).first()
+    user = db.query(User).filter(student_id == student_id).first()
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'})
+    learned = db.query(Learned).filter(Learned.lecture_id == lecture_id).filter(Learned.student_id == user.id).first()
     if not learned:
         return JSONResponse(content={'ok': False, 'message': '등록되지 않은 과목입니다.'}, status_code=400)
     db.delete(learned)

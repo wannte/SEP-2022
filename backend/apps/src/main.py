@@ -19,5 +19,9 @@ app.add_middleware(
 )
 
 from apps.src.routes.apis.v1.user import routes as user_routes
+from apps.src.routes.apis.v1.lecture import routes as lecture_routes
+from apps.src.routes.apis.v1.data import routes as data_routes
 
 app.include_router(user_routes.rt)
+app.include_router(lecture_routes.rt)
+app.include_router(data_routes.rt)
