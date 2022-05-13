@@ -38,7 +38,6 @@ class Learned(Base):
     __tablename__ = "learneds"
 
     id = Column(Integer, primary_key=True, index=True, nullable=False)
-    student_id = Column(Integer, nullable=False)
-    lecture_id = Column(Integer)
-    lecture = relationship(Lecture) # foriegn
+    student_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    lecture_id = Column(Integer, ForeignKey('lectures.id'))
     custom_lecture_id = Column(Integer)

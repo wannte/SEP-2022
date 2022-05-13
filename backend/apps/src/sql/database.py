@@ -3,8 +3,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from apps.src.config import Config
+# from config import Config     # to use alembic
 
-SQLALCHEMY_DATABASE_URL= Config.database_url('mysql')
+# SQLALCHEMY_DATABASE_URL= Config.database_url('mysql')
+SQLALCHEMY_DATABASE_URL= Config.database_url('sqlite')
 
 if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
