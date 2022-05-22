@@ -19,3 +19,11 @@ class LectureService():
                     .filter(Lecture.semester == semester) \
                     .all()
         return list(map(lambda x: x.Lecture, learneds))
+
+    @staticmethod
+    def get_all_lectures_by_year_semester_major(year: str, semester: str, major: str, db: Session):
+        return db.query(Lecture) \
+                .filter(Lecture.major == major) \
+                .filter(Lecture.year == year) \
+                .filter(Lecture.semester == semester) \
+                .all()

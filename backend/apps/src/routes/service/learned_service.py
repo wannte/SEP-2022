@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.orm import Session
 
 from apps.src.sql.model import Learned, Lecture
@@ -22,6 +23,12 @@ class LearnedService():
             .filter(Lecture.semester == semester) \
             .all()
 
+    @staticmethod
+    def get_all_learned_by_user_id(user_id: int, db: Session):
+        return db.query(Learned) \
+                .filter(Learned.student_id == user_id) \
+                .all()
+
 
     @staticmethod
     def create_learned(learned: Learned, db: Session):
@@ -43,3 +50,9 @@ class LearnedService():
             print(e)
             return False
     
+    @staticmethod
+    def delete_all_learned(learneds: List[Learned], db: Session):
+        for learned in learneds:
+            if not LearnedService.delete_learned(learned, db):
+                return False
+        return True
