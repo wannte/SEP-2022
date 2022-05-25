@@ -108,14 +108,6 @@ const Home = (): JSX.Element => {
           />
         </FlexColumn>
       </section>
-      {/* <section>
-        <div>
-          <div>
-            내 수강 기록을 입력하고 관리하세요. 이제껏 경험 못했던 쉽고 편한
-            졸업 요건 체크 서비스, 우리와 함께라면 당신의 일상이 새로워질 거에요
-          </div>
-        </div>
-      </section> */}
     </>
   );
 };

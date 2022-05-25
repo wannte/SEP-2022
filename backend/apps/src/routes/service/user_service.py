@@ -6,6 +6,7 @@ from apps.src.sql.model import User
 
 
 def get_user(student_id: str = Header(...), db: Session = Depends(get_db)):
+    print(student_id)
     return db.query(User).filter(student_id == student_id).first()
 
 class UserService():

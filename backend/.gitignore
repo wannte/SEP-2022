@@ -166,3 +166,8 @@ cython_debug/
 
 # local database
 *.db
+
+
+# jngyun venv
+sep
+node_modules
