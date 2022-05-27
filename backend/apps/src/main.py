@@ -11,7 +11,16 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:3000",
+    '*'
 ]
+
+from apps.src.routes.apis.v1.user import routes as user_routes
+from apps.src.routes.apis.v1.lecture import routes as lecture_routes
+from apps.src.routes.apis.v1.data import routes as data_routes
+
+app.include_router(user_routes.rt)
+app.include_router(lecture_routes.rt)
+app.include_router(data_routes.rt)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,11 +30,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-from apps.src.routes.apis.v1.user import routes as user_routes
-from apps.src.routes.apis.v1.lecture import routes as lecture_routes
-from apps.src.routes.apis.v1.data import routes as data_routes
-
-app.include_router(user_routes.rt)
-app.include_router(lecture_routes.rt)
-app.include_router(data_routes.rt)
