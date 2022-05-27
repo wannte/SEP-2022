@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import logo from "@assets/logo192.png";
+// import logo from "@assets/logo192.png";
+import logo from "@assets/logo.svg";
 const NavBarBlock = styled.div`
   color: black;
   height: 50px;
@@ -10,6 +11,7 @@ const NavBarBlock = styled.div`
   backdrop-filter: blur(8px);
   display: flex;
   justify-content: space-between;
+  border-bottom: 1px inset rgba(102, 103, 171, 0.4);
   z-index: 100;
 `;
 
@@ -64,9 +66,8 @@ const Navbar = (): JSX.Element => {
         </a>
         <Menu>
           <MenuButton>메뉴</MenuButton>
-          <MenuButton>또다른</MenuButton>
+          <MenuButton>*</MenuButton>
           <MenuButton>메뉴</MenuButton>
-          <MenuButton>또다른</MenuButton>
         </Menu>
       </NavWrapper>
     </NavBarBlock>
