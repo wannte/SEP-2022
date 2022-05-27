@@ -1,6 +1,7 @@
+import { useAppSelect } from "@hooks/useStore";
+import axios from "axios";
 import React, { useState } from "react";
 import styled from "styled-components";
-type ILecture = Omit<Lecture, "learned">;
 
 const Wrapper = styled.div<{ learned: boolean }>`
   height: 80px;
@@ -12,7 +13,7 @@ const Wrapper = styled.div<{ learned: boolean }>`
   background-color: transparent;
   box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
   :hover {
-    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -24,32 +25,39 @@ const Label = styled.span`
 `;
 
 const Name = styled.div`
+  padding: 0.4rem 0 0 0;
   font-size: 1.5rem;
   font-weight: 700;
 `;
 
-const MLecture = (lecture: ILecture): JSX.Element => {
-  const [learned, setLearned] = useState(false);
-  const { lectureName, lectureCode, lectureCredit } = lecture;
+const Lecture = (lecture: Lecture): JSX.Element => {
+  const sid = useAppSelect((select) => select.user.studentId);
+  const { lecture_name, lecture_code, credit, id, learned } = lecture;
+  const [learn, setLearn] = useState(learned);
+
   const handleClick = () => {
-    setLearned(!learned);
+    if (learn) {
+      axios.delete(`http://localhost:8000/users/lectures/${id}`, {
+        headers: { "student-id": sid },
+      });
+    } else {
+      axios.post(
+        `http://localhost:8000/users/lectures/${id}`,
+        {},
+        {
+          headers: { "student-id": sid },
+        }
+      );
+    }
+    setLearn(!learn);
   };
   return (
-    <Wrapper onClick={handleClick} learned={learned}>
-      <Label className="label">{lectureCode}</Label>
-      <Label className="label">{lectureCredit}</Label>
-      <Name>{lectureName}</Name>
+    <Wrapper onClick={handleClick} learned={learn}>
+      <Label className="label">{lecture_code}</Label>
+      <Label className="label">{credit}</Label>
+      <Name>{lecture_name}</Name>
     </Wrapper>
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Lecture = (lecture: Lecture): JSX.Element => {
-  return (
-    <div>
-      <></>
-    </div>
-  );
-};
-
-export default React.memo(MLecture);
+export default React.memo(Lecture);

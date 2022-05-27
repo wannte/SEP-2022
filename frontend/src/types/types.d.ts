@@ -6,8 +6,13 @@ interface Toast {
 }
 
 interface Lecture {
-  lectureName: string;
-  lectureCode: string;
-  lectureCredit: number;
+  year: string;
+  lecture_code: string;
+  credit: number;
+  required: boolean;
+  lecture_name: string;
+  semester: string;
+  id: number;
+  major: string;
   learned: boolean;
 }

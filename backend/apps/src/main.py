@@ -8,7 +8,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-origins = ["*"]
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
 
 from apps.src.routes.apis.v1.user import routes as user_routes
 from apps.src.routes.apis.v1.lecture import routes as lecture_routes
@@ -20,8 +23,9 @@ app.include_router(data_routes.rt)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex='.*',
+    allow_origins=origins,
+    # allow_origin_regex='.*',
     allow_credentials=True,
-    allow_methods=origins,
-    allow_headers=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
