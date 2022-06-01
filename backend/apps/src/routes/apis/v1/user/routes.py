@@ -25,10 +25,22 @@ def check_user_exists(student_id: str, db: Session = Depends(get_db)):
         return True
     return False
 
+class NewUser():
+    def __init__(self) -> None:
+        pass
+    def toJson(self):
+        return 
+
+
 @rt.post('')
 def sign_up(student_id: str = Body(...), major: str = Body(...), db: Session = Depends(get_db)):
     if UserService.get_user_by_student_id(student_id, db):
         return JSONResponse(content={'ok': False, 'message': '이미 존재하는 유저입니다.'}, status_code=400)
+    new_user = User(
+        student_id = student_id,
+        major = major,
+        basic_lecture = 'basic_science={math={},science={}}'
+    )
     if not UserService.create_user(User(student_id = student_id, major = major), db):
         return JSONResponse(content={'ok': False, 'message': '유저 생성에 실패하였습니다.'}, status_code=400)
     return {'ok': True}
@@ -89,3 +101,24 @@ def count_all_credit(user: User = Depends(get_user), db: Session = Depends(get_d
     for lecture in lectures:
         total_credit += lecture.credit
     return total_credit
+
+# 졸업요건계산
+@rt.get('/graduation')
+def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    if user.major != 'EC' or user.student_id[:4] not in ['2015', '2016', '2017']:
+        return JSONResponse(content={'ok': False, 'message': 'EECS 전공 15, 16, 17학번만 가능합니다.'}, status_code=403)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    # 기초과학: 수학 6학점, 물리/화학/생명/전컴 중 3과목 선택이수 + 물리/화학/생물 실험 동반 이수
+    basic_math = ['GS1001', 'GS2001', 'GS2002', 'GS2003', 'GS2004']
+    for lecture in lectures:
+        if lecture.lecture_code in basic_math:
+            return
+    return {'ok': True}
+
+# def add() {
+#     user.basic_science = "math={}, science: {}"
+#     user.major = ""
+#     usre.free_lecture = ""
+# }
