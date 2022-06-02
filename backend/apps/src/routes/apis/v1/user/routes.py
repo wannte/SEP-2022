@@ -1,3 +1,4 @@
+import pickle as p
 from fastapi import APIRouter, Body, Depends, Header
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -5,14 +6,15 @@ from apps.src.routes.service.user_service import UserService, get_user
 
 from apps.src.sql.database import get_db
 from apps.src.sql.model import Learned, Lecture, User
+from apps.src.routes.apis.v1.user.item import BasicLecture
 from apps.src.routes.service.learned_service import LearnedService
 from apps.src.routes.service.lecture_service import LectureService
 
 rt = APIRouter(prefix='/users', tags=['user'])
 
-@rt.get('')
-def test():
-    return {'ping': 'pong'}
+# @rt.get('')
+# def test():
+#     return {'ping': 'pong'}
 
 @rt.get('/test')
 def test_db(db: Session = Depends(get_db)):
@@ -21,27 +23,27 @@ def test_db(db: Session = Depends(get_db)):
 # login
 @rt.get('')
 def check_user_exists(student_id: str, db: Session = Depends(get_db)):
-    if UserService.get_user_by_student_id(student_id, db):
-        return True
+    user = UserService.get_user_by_student_id(student_id, db)
+    if user:
+        lecture = p.loads(user.basic_lecture)
+        return lecture
     return False
-
-class NewUser():
-    def __init__(self) -> None:
-        pass
-    def toJson(self):
-        return 
 
 
 @rt.post('')
 def sign_up(student_id: str = Body(...), major: str = Body(...), db: Session = Depends(get_db)):
     if UserService.get_user_by_student_id(student_id, db):
         return JSONResponse(content={'ok': False, 'message': '이미 존재하는 유저입니다.'}, status_code=400)
+
+    user_lecture = BasicLecture()
+    basic_lecture = p.dumps(user_lecture)
+
     new_user = User(
         student_id = student_id,
         major = major,
-        basic_lecture = 'basic_science={math={},science={}}'
+        basic_lecture = basic_lecture
     )
-    if not UserService.create_user(User(student_id = student_id, major = major), db):
+    if not UserService.create_user(new_user, db):
         return JSONResponse(content={'ok': False, 'message': '유저 생성에 실패하였습니다.'}, status_code=400)
     return {'ok': True}
 
@@ -68,10 +70,13 @@ def get_user_lectures(year: str, semester: str, user: User = Depends(get_user), 
 def add_lecture(lecture_id: int, user: User = Depends(get_user), db: Session = Depends(get_db)):
     if not user:
         return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lecture = LectureService.get_lecture_by_id(lecture_id, db)
+    if not lecture:
+        return JSONResponse(content={'ok': False, 'message': '없는 과목입니다.'}, status_code=400)
     if LearnedService.get_learned_by_lecture_id_and_user_id(user.id, lecture_id, db):
         return JSONResponse(content={'ok': False, 'message': '이미 등록된 과목입니다.'}, status_code=400)
     learned = Learned(student_id = user.id, lecture_id = lecture_id)
-    if not LearnedService.create_learned(learned, db):
+    if not LearnedService.create_learned(user, lecture, learned, db):
         return JSONResponse(content={'ok': False, 'message': 'leanred 생성을 실패했습니다.'}, status_code=400)
     return {'ok': True}
 
