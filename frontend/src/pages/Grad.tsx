@@ -7,6 +7,8 @@ import { useHeaders } from "@hooks/useHeaders";
 import { SelectBox } from "@components/common";
 import Summary from "@components/Summary";
 import { majors, Major } from "@utils/majors";
+import { useAppSelect } from "@hooks/useStore";
+import useDebounce from "@hooks/useDebounce";
 // const mockLectures: Array<Lecture> = [
 //   {
 //     lectureCode: "EC4219",
@@ -35,6 +37,7 @@ import { majors, Major } from "@utils/majors";
 // ];
 
 const FlexBox = styled.div`
+  min-height: calc(100vh - 130px - 6rem);
   display: flexbox;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -59,6 +62,57 @@ const Title = styled.div`
 
 const FormWrapper = styled.div``;
 
+const NeedMajor = styled.div`
+  line-height: calc(100vh - 130px - 5rem);
+  text-align: center;
+  height: calc(100vh - 130px - 6rem);
+`;
+
+const SearchBox = styled.div`
+  position: fixed;
+  bottom: 120px;
+  right: calc(2rem - 300px);
+  transition: 0.2s;
+  :hover {
+    right: -2rem;
+  }
+  input {
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    text-align: center;
+    border-radius: 1rem 0 0 1rem;
+    padding-left: 1rem;
+    padding-right: 4rem;
+    border: none;
+    width: 300px;
+    height: 4rem;
+    font-size: 1.5rem;
+    transition: 0.2s;
+    :focus {
+      outline: none;
+      box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.4);
+    }
+    transition: 0.2s;
+  }
+  button {
+    color: black;
+    position: relative;
+    right: 3rem;
+    top: calc(4rem - 50%);
+    border: none;
+    background: transparent;
+    vertical-align: baseline;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    :hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+`;
+
 const years = Array(8)
   .fill(0)
   .map((_v, i) => i + 2015)
@@ -72,24 +126,44 @@ interface Options {
 
 const Grad = (): JSX.Element => {
   const [lectures, setLectures] = useState<Array<Lecture>>([]);
+  const [filteredLectures, setFilteredLectures] = useState<Array<Lecture>>([]);
+  const [filter, setFilter] = useState("");
   const [options, setOptions] = useState<Options>({
     year: "2022",
     semester: "spring",
     major: "GS",
   });
+  const { studentId: sid, major } = useAppSelect((select) => select.user);
 
   const { fetch } = useHeaders();
 
   const fetchLecture = async () => {
-    const response = await fetch("/lectures?" + qs.stringify(options));
-    setLectures(response.data);
+    if (major) {
+      const response = await fetch("/lectures?" + qs.stringify(options));
+      setLectures(response.data);
+      setFilteredLectures(response.data);
+    }
   };
 
-  const fetchMajor = async () => {};
+  const debounceFilter = useDebounce({ value: filter, delay: 300 });
+
+  useEffect(() => {
+    if (debounceFilter) {
+      setFilteredLectures(
+        lectures.filter(
+          (lecture) =>
+            lecture.lecture_code.includes(filter) ||
+            lecture.lecture_name.includes(filter)
+        )
+      );
+    } else {
+      setFilteredLectures(lectures);
+    }
+  }, [debounceFilter]);
 
   useEffect(() => {
     fetchLecture();
-  }, [options]);
+  }, [options, major]);
 
   return (
     <>
@@ -142,12 +216,26 @@ const Grad = (): JSX.Element => {
             </SelectBox>
           </FormWrapper>
         </HeaderWrapper>
-        <FlexBox>
-          {lectures.map((lecture, idx) => (
-            <Lecture key={`lecture_${lecture.lecture_code}`} {...lecture} />
-          ))}
-        </FlexBox>
+        {major ? (
+          <FlexBox>
+            {filteredLectures.map((lecture, _idx) => (
+              <Lecture key={`lecture_${lecture.lecture_code}`} {...lecture} />
+            ))}
+          </FlexBox>
+        ) : (
+          <NeedMajor>전공을 선택해주세요</NeedMajor>
+        )}
       </Container>
+      <SearchBox>
+        <input
+          placeholder="과목 검색"
+          value={filter}
+          onChange={(event) => {
+            setFilter(event.target.value);
+          }}
+        />
+        <button onClick={() => setFilter("")}>×</button>
+      </SearchBox>
       <Summary />
     </>
   );
