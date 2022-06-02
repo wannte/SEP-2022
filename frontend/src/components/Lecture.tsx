@@ -12,7 +12,7 @@ const Button = styled.button<{ learn: boolean }>`
   /* box-sizing: border-box; */
   position: relative;
   height: 80px;
-  min-width: 320px;
+  min-width: 240px;
   padding: 1rem;
   margin: 2rem 0;
   border-radius: 10px;
