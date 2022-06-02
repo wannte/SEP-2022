@@ -36,43 +36,50 @@ class LearnedService():
 
     @staticmethod
     def create_learned(user: User, lecture: Lecture, learned: Learned, db: Session):
-        lecture_major = lecture.major
-        lecture_code = lecture.lecture_code
-        message = 'success'
-        print('수강과목:',lecture.lecture_name)
-        print('과목전공:',lecture_major)
-        print('과목번호:',lecture_code)
-        basic_lecture = p.loads(user.basic_lecture)
-        non_credit_lecture = p.loads(user.non_credit_lecture)
-        if lecture_major == 'GS':
-            if lecture_code[2] == '0':
-                # 예체능
-                pass
-            else:
-                message = basic_lecture.add_lecture(lecture)
-                user.basic_lecture = p.dumps(basic_lecture)
-                # user.basic_lecture에 기초과목 추가하는 로직
-        elif lecture.major == user.major:
-            # 전공과목
-            pass
-        elif lecture_major == 'UC':
-            # 콜로퀴움
-            if lecture_code == 'UC9331':
-                message = non_credit_lecture.add_lecture(lecture)
-                user.non_credit_lecture = p.dumps(non_credit_lecture)
-            # 봉사, 과기경
-            pass
-        else:
-            # 타전공
-            pass
-        # 그외에도 과목이 어떤 것인지 판단하고 과목 추가하는 로직 필요
-        UserService.update_user(user,db)
         try:
+            # lecture_major = lecture.major
+            # lecture_code = lecture.lecture_code
+            message = 'success'
+            # print('수강과목:',lecture.lecture_name)
+            # print('과목전공:',lecture_major)
+            # print('과목번호:',lecture_code)
+            # basic_lecture = p.loads(user.basic_lecture)
+            # non_credit_lecture = p.loads(user.non_credit_lecture)
+            # if lecture_major == 'GS':
+            #     if lecture_code[2] == '0':
+            #         message, ok = non_credit_lecture.add_lecture(lecture)
+            #         if not ok:
+            #             raise
+            #         user.non_credit_lecture = p.dumps(non_credit_lecture)
+            #     else:
+            #         message,ok = basic_lecture.add_lecture(lecture)
+            #         if not ok: 
+            #             raise
+            #         user.basic_lecture = p.dumps(basic_lecture)
+            #         # user.basic_lecture에 기초과목 추가하는 로직
+            # elif lecture.major == user.major:
+            #     # 전공과목
+            #     pass
+            # elif lecture_major == 'UC':
+            #     # 콜로퀴움
+            #     if lecture_code == 'UC9331':
+            #         message, ok = non_credit_lecture.add_lecture(lecture)
+            #         if not ok:
+            #             raise
+            #         user.non_credit_lecture = p.dumps(non_credit_lecture)
+            #     # 봉사, 과기경
+            #     pass
+            # else:
+            #     # 타전공
+            #     pass
+            # # 그외에도 과목이 어떤 것인지 판단하고 과목 추가하는 로직 필요
+            # # UserService.update_user(user,db)
             db.add(learned)
             db.commit()
             return message
         except Exception as e:
             print(e)
+            db.rollback()
             return False
 
     @staticmethod
