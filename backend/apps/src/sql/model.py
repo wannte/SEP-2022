@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, BLOB
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -11,6 +11,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     student_id = Column(String(8), unique=True, nullable=False)
     major = Column(String(20), nullable=False)
+    basic_lecture = Column(BLOB)
+    major_lecture = Column(BLOB)
+    research_lecture = Column(BLOB)
+    free_select_lecture = Column(BLOB)
+    non_credit_lecture = Column(BLOB)
 
 class Lecture(Base):
     __tablename__ = "lectures"
