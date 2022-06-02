@@ -6,9 +6,10 @@ from apps.src.routes.service.user_service import UserService, get_user
 
 from apps.src.sql.database import get_db
 from apps.src.sql.model import Learned, Lecture, User
-from apps.src.routes.apis.v1.user.item import BasicLecture, NonCreditLecture
+from apps.src.routes.apis.v1.user.item import *
 from apps.src.routes.service.learned_service import LearnedService
 from apps.src.routes.service.lecture_service import LectureService
+from apps.src.routes.service.graduation_service import GraduationService
 
 rt = APIRouter(prefix='/users', tags=['user'])
 
@@ -36,7 +37,7 @@ def check_user_exists(student_id: str, db: Session = Depends(get_db)):
     if user:
         basic_lecture = p.loads(user.basic_lecture)
         non_credit_lecture = p.loads(user.non_credit_lecture)
-        return {basic_lecture, non_credit_lecture}
+        return {'basic_liberal_arts': basic_lecture, 'non_credit_required': non_credit_lecture}
     return False
 
 
@@ -124,23 +125,178 @@ def count_all_credit(user: User = Depends(get_user), db: Session = Depends(get_d
         total_credit += lecture.credit
     return total_credit
 
-# 졸업요건계산
-@rt.get('/graduation')
-def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)):
-    if not user:
-        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
-    if user.major != 'EC' or user.student_id[:4] not in ['2015', '2016', '2017']:
-        return JSONResponse(content={'ok': False, 'message': 'EECS 전공 15, 16, 17학번만 가능합니다.'}, status_code=403)
-    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
-    # 기초과학: 수학 6학점, 물리/화학/생명/전컴 중 3과목 선택이수 + 물리/화학/생물 실험 동반 이수
-    basic_math = ['GS1001', 'GS2001', 'GS2002', 'GS2003', 'GS2004']
-    for lecture in lectures:
-        if lecture.lecture_code in basic_math:
-            return
-    return {'ok': True}
-
 # def add() {
 #     user.basic_science = "math={}, science: {}"
 #     user.major = ""
 #     usre.free_lecture = ""
 # }
+
+@rt.get('/lecture/liberal_arts')
+def calculate_liberal_arts(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    required = []
+    select = []
+    overflow = []
+    for lecture in lectures:
+        if lecture in hus+ppe+gsc:
+            if len(required) < 8:
+                required.append(lecture)
+            elif len(select) < 4:
+                select.append(lecture)
+            else:
+                overflow.append(lecture)
+    return {
+        'required': required,
+        'select': select,
+        'overflow': overflow
+    }
+
+@rt.get('/lecture/major')
+def calculate_major(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    major = []
+    required = False
+    for lecture in lectures:
+        if lecture.major == user.major:
+            if lecture.required:
+                required = True
+            major.append(lecture)
+    sum_credit = sum(map(lambda x: x.credit, major))
+    return {
+        'major': major,
+        'required': required,
+        'sum_credit': sum_credit
+    }
+
+@rt.get('/lecture/other_major')
+def calculate_other_major(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    other_major = []
+    for lecture in lectures:
+        if lecture.major not in ['GS', user.major, 'UC']:
+            other_major.append(lecture)
+    sum_credit = sum(map(lambda x: x.credit, other_major))
+    return {
+        'other_major': other_major,
+        'sum_credit': sum_credit
+    }
+
+@rt.get('/lecture/language')
+def calculate_language(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    language = []
+    required_ko = []
+    required_en = []
+    for lecture in lectures:
+        if lecture.lecture_code in required_korean:
+            if len(required_ko) == 0:
+                required_ko.append(lecture)
+            else:
+                language.append(lecture)
+        elif lecture.lecture_code in required_english:
+            if len(required_en) < 2:
+                required_en.append(lecture)
+            else:
+                language.append(lecture)
+        elif lecture.lecture_code in choice_language_sw:
+            language.append(lecture)
+    return {
+        'required_ko': required_ko,
+        'required_en': required_en,
+        'language': language,
+    }
+
+@rt.get('/lecture/basic')
+def calculate_basic(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    basic = []
+    required_ma = []
+    required_sc = []
+    for lecture in lectures:
+        lecture_code = lecture.lecture_code
+        if lecture_code in required_math:
+            if len(required_ma) < 2:
+                required_ma.append(lecture)
+            else:
+                basic.append(lecture)
+        elif lecture_code in required_science.keys():
+            if len(required_sc) < 3:
+                exp_code = required_science.get(lecture_code)
+                flag = False
+                for experiment_lecture in lectures:
+                    if experiment_lecture.lecture_code == exp_code:
+                        required_sc.append((lecture, experiment_lecture))
+                        flag = True
+                        break
+                if not flag:
+                    basic.append(lecture)
+            else:
+                basic.append(lecture)
+        elif lecture_code in choice_basic:
+            basic.append(lecture)
+    return {
+        'required_ma': required_ma,
+        'required_sc': required_sc,
+        'basic': basic,
+    }
+
+@rt.get('/lecture/other')
+def calculate_other(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    freshman = []
+    coloquium = []
+    sport = []
+    art_music = []
+    other = []
+    for lecture in lectures:
+        lecture_code = lecture.lecture_code
+        if lecture_code in freshman_semina:
+            freshman.append(lecture)
+        elif lecture_code == 'UC9331':
+            coloquium.append(lecture)
+        elif lecture_code[:4] == 'GS01':
+            sport.append(lecture)
+        elif lecture_code[:4] == 'GS02':
+            art_music.append(lecture)
+        else:
+            other.append(lecture)
+    return {
+        'freshman': freshman,
+        'coloquium': coloquium,
+        'sport': sport,
+        'art_music': art_music,
+    }
+
+# 졸업요건계산
+@rt.get('/graduation')
+def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    liberal_arts, lectures = GraduationService.liberal_arts(lectures, db)
+    major, lectures = GraduationService.major(user.major, lectures, db)
+    other_major, lectures = GraduationService.other_major(user.major, lectures, db)
+    language, lectures = GraduationService.language(lectures, db)
+    basic, lectures = GraduationService.basic(lectures, db)
+    other = GraduationService.other(lectures, db)
+    return {
+        'liberal_arts': liberal_arts,
+        'major': major,
+        'other_major': other_major,
+        'language': language,
+        'basic': basic,
+        'other': other,
+    }
+

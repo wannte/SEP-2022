@@ -7,7 +7,7 @@ class LectureService():
     @staticmethod
     def get_all_lectures_by_user_id(user_id: int, db: Session):
         lecture_learned = db.query(Learned, Lecture).join(Lecture, Lecture.id == Learned.lecture_id) \
-                            .filter(Learned.student_id == user_id).all()
+                            .filter(Learned.student_id == user_id).order_by(Lecture.lecture_code).all()
         return list(map(lambda x: x.Lecture, lecture_learned))
 
     @staticmethod
