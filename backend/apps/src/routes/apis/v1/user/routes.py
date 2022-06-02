@@ -20,6 +20,15 @@ rt = APIRouter(prefix='/users', tags=['user'])
 def test_db(db: Session = Depends(get_db)):
     return {'ok': True}
 
+@rt.put('/reset')
+def reset(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    user_lecture = BasicLecture()
+    user.basic_lecture = p.dumps(user_lecture)
+    UserService.update_user(user, db)
+    learneds = LearnedService.get_all_learned_lecture_by_user_id(user.id, db)
+    LearnedService.delete_all_learned(learneds, db)
+    return {'ok': True}
+
 # login
 @rt.get('')
 def check_user_exists(student_id: str, db: Session = Depends(get_db)):
@@ -54,7 +63,7 @@ def change_major(major: str = Body(...) , user: User = Depends(get_user), db: Se
         return JSONResponse(content={'ok': False, 'message': '전공 변경에 실패하였습니다.'}, status_code=400)
     return {'ok': True}
 
-@rt.get('/user-info', description='해당 student_id의 정보')
+@rt.get('/info', description='해당 student_id의 정보')
 def get_user_info(user: User = Depends(get_user), db: Session = Depends(get_db)):
     if not user:
         return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
