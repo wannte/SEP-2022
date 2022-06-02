@@ -2,8 +2,9 @@ import styled from "styled-components";
 import BackgroundImg from "@assets/graduation.jpg";
 import { useState } from "react";
 import { useAppDispatch } from "@hooks/useStore";
-import { setId } from "@stores/userSlice";
+import { setId, setMajor } from "@stores/userSlice";
 import { useNavigate } from "react-router-dom";
+import API from "@utils/api";
 
 // const FlexRow = styled.div`
 //   display: flex;
@@ -82,7 +83,7 @@ const Home = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const curr = event.target.value;
     if (curr.length <= 8 && curr.match(idRegex)) {
       setInput(curr);
@@ -90,6 +91,12 @@ const Home = (): JSX.Element => {
     if (curr.length === 8) {
       console.log("FULLFILLED");
       dispatch(setId({ studentId: curr }));
+      const response = await API.get("/users/info", {
+        headers: { "student-id": curr },
+      });
+      response?.data?.major
+        ? dispatch(setMajor({ major: response.data.major }))
+        : dispatch(setMajor({ major: null }));
       navigate("/grad");
     }
   };
