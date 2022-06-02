@@ -27,3 +27,7 @@ class LectureService():
                 .filter(Lecture.year == year) \
                 .filter(Lecture.semester == semester) \
                 .all()
+
+    @staticmethod
+    def get_lecture_by_id(id: int, db: Session):
+        return db.query(Lecture).filter(Lecture.id == id).first()
