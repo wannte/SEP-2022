@@ -1,13 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const MAJOR = {
-  EECS: "EECS",
-  PYHSICS: "PYHSICS",
-};
-
 const initialState = {
   studentId: "20165046",
-  major: MAJOR.EECS,
+  major: null,
 };
 
 export const userSlice = createSlice({
@@ -17,9 +12,12 @@ export const userSlice = createSlice({
     setId: (state, { payload }) => {
       state.studentId = payload.studentId;
     },
+    setMajor: (state, { payload }) => {
+      state.major = payload.major;
+    },
   },
 });
 
-export const { setId } = userSlice.actions;
+export const { setId, setMajor } = userSlice.actions;
 
 export default userSlice.reducer;

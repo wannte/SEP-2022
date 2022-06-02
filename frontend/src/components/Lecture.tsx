@@ -1,62 +1,88 @@
-import { useAppSelect } from "@hooks/useStore";
-import axios from "axios";
-import React, { useState } from "react";
+import { useHeaders } from "@hooks/useHeaders";
+import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 
-const Wrapper = styled.div<{ learned: boolean }>`
+const ButtonWrapper = styled.div`
+  /* position: relative; */
+  box-sizing: content-box;
+`;
+
+const Button = styled.button<{ learn: boolean }>`
+  display: block;
+  /* box-sizing: border-box; */
+  position: relative;
   height: 80px;
-  min-width: 320px;
+  min-width: 240px;
   padding: 1rem;
   margin: 2rem 0;
   border-radius: 10px;
-  border: ${(props) => (props.learned ? `1px inset black` : "none")};
+  border: ${(props) =>
+    props.learn ? `1px inset rgba(102, 103, 171, 0.3)` : "none"};
+  /* border: none; */
   background-color: transparent;
-  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
+  background-color: ${(props) =>
+    props.learn ? `rgba(102, 103, 171, 0.1)` : "transparent"};
+  box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.05);
   :hover {
-    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.1);
+  }
+  transition: 0.2s;
+  :hover {
+    cursor: pointer;
   }
 `;
 
-const Button = styled.button``;
-
 const Label = styled.span`
-  /* padding: 1rem 1rem 1rem 0; */
+  display: inline-block;
   font-weight: 200;
+`;
+
+const Credit = styled.span<{ learn: boolean }>`
+  display: inline-block;
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: ${(props) =>
+    props.learn ? "rgba(102, 103, 171)" : "transparent"};
+  color: ${(props) => (props.learn ? "white" : "transparent")}; ;
 `;
 
 const Name = styled.div`
   padding: 0.4rem 0 0 0;
   font-size: 1.5rem;
   font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
+// interface ILecture extends Lecture {}
+
 const Lecture = (lecture: Lecture): JSX.Element => {
-  const sid = useAppSelect((select) => select.user.studentId);
   const { lecture_name, lecture_code, credit, id, learned } = lecture;
   const [learn, setLearn] = useState(learned);
 
-  const handleClick = () => {
-    if (learn) {
-      axios.delete(`http://localhost:8000/users/lectures/${id}`, {
-        headers: { "student-id": sid },
-      });
-    } else {
-      axios.post(
-        `http://localhost:8000/users/lectures/${id}`,
-        {},
-        {
-          headers: { "student-id": sid },
-        }
-      );
-    }
+  const { post, del } = useHeaders();
+
+  const handleClick = useCallback(() => {
+    learn ? del(`/users/lectures/${id}`) : post(`/users/lectures/${id}`, {});
     setLearn(!learn);
-  };
+  }, [id, learn, del, post]);
+
   return (
-    <Wrapper onClick={handleClick} learned={learn}>
-      <Label className="label">{lecture_code}</Label>
-      <Label className="label">{credit}</Label>
-      <Name>{lecture_name}</Name>
-    </Wrapper>
+    <ButtonWrapper>
+      <Button onClick={handleClick} learn={learn}>
+        <Label className="label">{lecture_code}</Label>
+        <Credit className="label" learn={learn}>
+          {credit}
+        </Credit>
+        <Name>{lecture_name}</Name>
+      </Button>
+    </ButtonWrapper>
   );
 };
 
