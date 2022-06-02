@@ -6,7 +6,7 @@ from apps.src.routes.service.user_service import UserService, get_user
 
 from apps.src.sql.database import get_db
 from apps.src.sql.model import Learned, Lecture, User
-from apps.src.routes.apis.v1.user.item import BasicLecture
+from apps.src.routes.apis.v1.user.item import BasicLecture, NonCreditLecture
 from apps.src.routes.service.learned_service import LearnedService
 from apps.src.routes.service.lecture_service import LectureService
 
@@ -22,10 +22,10 @@ def test_db(db: Session = Depends(get_db)):
 
 @rt.put('/reset')
 def reset(user: User = Depends(get_user), db: Session = Depends(get_db)):
-    user_lecture = BasicLecture()
-    user.basic_lecture = p.dumps(user_lecture)
+    user.basic_lecture = p.dumps(BasicLecture())
+    user.non_credit_lecture = p.dumps(NonCreditLecture())
     UserService.update_user(user, db)
-    learneds = LearnedService.get_all_learned_lecture_by_user_id(user.id, db)
+    learneds = LearnedService.get_all_learned_by_user_id(user.id, db)
     LearnedService.delete_all_learned(learneds, db)
     return {'ok': True}
 
@@ -34,8 +34,9 @@ def reset(user: User = Depends(get_user), db: Session = Depends(get_db)):
 def check_user_exists(student_id: str, db: Session = Depends(get_db)):
     user = UserService.get_user_by_student_id(student_id, db)
     if user:
-        lecture = p.loads(user.basic_lecture)
-        return lecture
+        basic_lecture = p.loads(user.basic_lecture)
+        non_credit_lecture = p.loads(user.non_credit_lecture)
+        return {basic_lecture, non_credit_lecture}
     return False
 
 
@@ -44,13 +45,14 @@ def sign_up(student_id: str = Body(...), major: str = Body(...), db: Session = D
     if UserService.get_user_by_student_id(student_id, db):
         return JSONResponse(content={'ok': False, 'message': '이미 존재하는 유저입니다.'}, status_code=400)
 
-    user_lecture = BasicLecture()
-    basic_lecture = p.dumps(user_lecture)
+    basic_lecture = p.dumps(BasicLecture())
+    non_credit_lecture = p.dumps(NonCreditLecture())
 
     new_user = User(
         student_id = student_id,
         major = major,
-        basic_lecture = basic_lecture
+        basic_lecture = basic_lecture,
+        non_credit_lecture = non_credit_lecture,
     )
     if not UserService.create_user(new_user, db):
         return JSONResponse(content={'ok': False, 'message': '유저 생성에 실패하였습니다.'}, status_code=400)
@@ -85,9 +87,10 @@ def add_lecture(lecture_id: int, user: User = Depends(get_user), db: Session = D
     if LearnedService.get_learned_by_lecture_id_and_user_id(user.id, lecture_id, db):
         return JSONResponse(content={'ok': False, 'message': '이미 등록된 과목입니다.'}, status_code=400)
     learned = Learned(student_id = user.id, lecture_id = lecture_id)
-    if not LearnedService.create_learned(user, lecture, learned, db):
+    message = LearnedService.create_learned(user, lecture, learned, db)
+    if not message:
         return JSONResponse(content={'ok': False, 'message': 'leanred 생성을 실패했습니다.'}, status_code=400)
-    return {'ok': True}
+    return {'ok': True, 'message': message}
 
 @rt.delete('/lectures/{lecture_id}')
 def delete_lecture(lecture_id: int, user: User = Depends(get_user), db: Session = Depends(get_db)):
