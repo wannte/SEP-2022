@@ -12,23 +12,19 @@ class GraduationService():
     def liberal_arts(lectures: List[Lecture], db: Session):
         required = []
         select = []
-        overflow = []
         remain = []
         for lecture in lectures:
             lecture_code = lecture.lecture_code
             if lecture_code in ppe + hus + gsc:
                 if len(required) < 8:
                     required.append(lecture)
-                elif len(select) < 4:
-                    select.append(lecture)
                 else:
-                    overflow.append(lecture)
+                    select.append(lecture)
             else:
                 remain.append(lecture)
         return {
             'required': required,
             'select': select,
-            'overflow': overflow
         }, remain
 
     @staticmethod
