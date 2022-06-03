@@ -1,4 +1,5 @@
 import pickle as p
+from typing import List
 from fastapi import APIRouter, Body, Depends, Header
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -280,8 +281,8 @@ def calculate_other(user: User = Depends(get_user), db: Session = Depends(get_db
     }
 
 # 졸업요건계산
-@rt.get('/graduation')
-def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)):
+@rt.get('/graduation2')
+def can_i_graduate2(user: User = Depends(get_user), db: Session = Depends(get_db)):
     if not user:
         return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
     lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
@@ -289,7 +290,7 @@ def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)
     major, lectures = GraduationService.major(user.major, lectures, db)
     other_major, lectures = GraduationService.other_major(user.major, lectures, db)
     language, lectures = GraduationService.language(lectures, db)
-    basic, lectures = GraduationService.basic(lectures, db)
+    basic, lectures = GraduationService.basic(user.major, lectures, db)
     other = GraduationService.other(lectures, db)
     return {
         'liberal_arts': liberal_arts,
@@ -300,3 +301,54 @@ def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)
         'other': other,
     }
 
+def form_data(lectures: List[Lecture]):
+    credit = 0
+    for lecture in lectures:
+        credit += lecture.credit
+    return {
+        'lectures': lectures,
+        'credit': credit
+    }
+
+@rt.get('/graduation')
+def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lectures = LectureService.get_all_lectures_by_user_id(user.id, db)
+    liberal_arts, lectures = GraduationService.liberal_arts(lectures, db)
+    major, lectures = GraduationService.major(user.major, lectures, db)
+    other_major, lectures = GraduationService.other_major(user.major, lectures, db)
+    language, lectures = GraduationService.language(lectures, db)
+    basic, lectures = GraduationService.basic(user.major, lectures, db)
+    other = GraduationService.other(lectures, db)
+
+    return {
+        'basic': {
+            'required_science': form_data(basic['required_ma']+basic['required_sc']),
+            'required_language': form_data(language['required_ko']+language['required_en']),
+            'liberal_arts': form_data(liberal_arts['required']),
+            'freshman_semina': form_data(other['freshman'])
+        },
+        'major': {
+            'reqruied': form_data(major['required']),
+            'non_required': form_data(major['non_required'])
+        },
+        'research': {
+            'research': form_data(major['research'])
+        },
+        'free_select':{
+            'liberal_arts': form_data(liberal_arts['select']),
+            'language_sw': form_data(language['language_sw']),
+            'pre_required': form_data(basic['required_ba']),
+            'other_pre_required': form_data(basic['non_required_ba']),
+            'basic': form_data(basic['basic']),
+            'other_major': form_data(other_major['other_major']),
+            'other': form_data(other['other'])
+        },
+        'non_credit': {
+            'art_music': form_data(other['art_music']),
+            'sport': form_data(other['sport']),
+            'coloquium': form_data(other['coloquium']),
+        }
+
+    }

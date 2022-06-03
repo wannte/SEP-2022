@@ -33,21 +33,25 @@ class GraduationService():
 
     @staticmethod
     def major(user_major: str, lectures: List[Lecture], db: Session):
-        major = []
+        required = []
+        non_required = []
         remain = []
-        required = False
+        research = []
         for lecture in lectures:
+            lecture_code = lecture.lecture_code
             if lecture.major == user_major:
-                if lecture.required:
-                    required = True
-                major.append(lecture)
+                if lecture_code[2] == '9':
+                    research.append(lecture)
+                elif lecture.required:   
+                    required.append(lecture)
+                else:
+                    non_required.append(lecture)
             else:
                 remain.append(lecture)
-        sum_credit = sum(map(lambda x: x.credit, major))
         return {
-            'major': major,
             'required': required,
-            'sum_credit': sum_credit
+            'non_required': non_required,
+            'research': research,
         }, remain
 
     @staticmethod
@@ -68,7 +72,7 @@ class GraduationService():
     @staticmethod
     def language(lectures: List[Lecture], db: Session):
         remain = []
-        language = []
+        language_sw = []
         required_ko = []
         required_en = []
         for lecture in lectures:
@@ -76,30 +80,35 @@ class GraduationService():
                 if len(required_ko) == 0:
                     required_ko.append(lecture)
                 else:
-                    language.append(lecture)
+                    language_sw.append(lecture)
             elif lecture.lecture_code in required_english:
                 if len(required_en) < 2:
                     required_en.append(lecture)
                 else:
-                    language.append(lecture)
+                    language_sw.append(lecture)
             elif lecture.lecture_code in choice_language_sw:
-                language.append(lecture)
+                language_sw.append(lecture)
             else:
                 remain.append(lecture)
         return {
             'required_ko': required_ko,
             'required_en': required_en,
-            'language': language,
+            'language_sw': language_sw,
         }, remain
 
     @staticmethod
-    def basic(lectures: List[Lecture], db: Session):
+    def basic(user_major: str, lectures: List[Lecture], db: Session):
         remain = []
         basic = []
         required_ma = []
         required_sc = []
+        required_ba = []
+        non_required_ba = []
+        already_in = []
         for lecture in lectures:
             lecture_code = lecture.lecture_code
+            if lecture_code in already_in:
+                continue
             if lecture_code in required_math:
                 if len(required_ma) < 2:
                     required_ma.append(lecture)
@@ -112,6 +121,7 @@ class GraduationService():
                     for experiment_lecture in lectures:
                         if experiment_lecture.lecture_code == exp_code:
                             required_sc.append((lecture, experiment_lecture))
+                            already_in.append(experiment_lecture.lecture_code)
                             flag = True
                             break
                     if not flag:
@@ -120,12 +130,25 @@ class GraduationService():
                     basic.append(lecture)
             elif lecture_code in choice_basic:
                 basic.append(lecture)
+            elif lecture_code in required_basic:
+                if lecture_code in required_basic_dict[user_major]:
+                    required_ba.append(lecture)
+                else:
+                    non_required_ba.append(lecture)
             else:
                 remain.append(lecture)
+        required_sc_ = []
+        for lecture, experiment in required_sc:
+            if lecture.id == experiment.id:
+                required_sc_.append(lecture)
+            else:
+                required_sc_ += [lecture, experiment]
         return {
             'required_ma': required_ma,
-            'required_sc': required_sc,
+            'required_sc': required_sc_,
             'basic': basic,
+            'required_ba': required_ba,
+            'non_required_ba': non_required_ba,
         }, remain
     
     @staticmethod
@@ -152,4 +175,5 @@ class GraduationService():
             'coloquium': coloquium,
             'sport': sport,
             'art_music': art_music,
+            'other': other
         }
