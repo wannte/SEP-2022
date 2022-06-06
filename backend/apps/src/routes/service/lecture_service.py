@@ -22,7 +22,13 @@ class LectureService():
 
     @staticmethod
     def get_all_lectures_by_year_semester_major(year: str, semester: str, major: str, db: Session):
-        return db.query(Lecture) \
+        if (major=="ALL"):
+            return db.query(Lecture) \
+                .filter(Lecture.year == year) \
+                .filter(Lecture.semester == semester) \
+                .all()
+        else: 
+            return db.query(Lecture) \
                 .filter(Lecture.major == major) \
                 .filter(Lecture.year == year) \
                 .filter(Lecture.semester == semester) \
