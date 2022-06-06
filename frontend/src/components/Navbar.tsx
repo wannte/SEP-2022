@@ -1,6 +1,9 @@
 import styled from "styled-components";
 // import logo from "@assets/logo192.png";
 import logo from "@assets/logo.svg";
+import { useNavigate } from "react-router-dom";
+import { memo } from "react";
+
 const NavBarBlock = styled.div`
   color: black;
   height: 50px;
@@ -11,7 +14,7 @@ const NavBarBlock = styled.div`
   backdrop-filter: blur(8px);
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px inset rgba(102, 103, 171, 0.4);
+  border-bottom: 1px inset rgba(102, 103, 102, 0.4);
   z-index: 100;
 `;
 
@@ -43,7 +46,7 @@ const Menu = styled.div`
   margin: auto;
 `;
 
-const MenuButton = styled.div`
+const MenuButton = styled.button`
   height: 2rem;
   line-height: 2rem;
   font-weight: 300;
@@ -52,12 +55,15 @@ const MenuButton = styled.div`
   vertical-align: baseline;
   border-radius: 8px;
   transition: 0.2s;
+  background: transparent;
+  border: none;
   :hover {
     background-color: rgba(0, 0, 0, 0.1);
   }
 `;
 
 const Navbar = (): JSX.Element => {
+  const navigate = useNavigate();
   return (
     <NavBarBlock>
       <NavWrapper>
@@ -65,13 +71,12 @@ const Navbar = (): JSX.Element => {
           <Logo src={logo} alt="logo" />
         </a>
         <Menu>
-          <MenuButton>메뉴</MenuButton>
-          <MenuButton>*</MenuButton>
-          <MenuButton>메뉴</MenuButton>
+          <MenuButton onClick={() => navigate("/grad")}>선택</MenuButton>
+          <MenuButton onClick={() => navigate("/result")}>결과</MenuButton>
         </Menu>
       </NavWrapper>
     </NavBarBlock>
   );
 };
 
-export default Navbar;
+export default memo(Navbar);

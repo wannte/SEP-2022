@@ -1,7 +1,6 @@
 import { useHeaders } from "@hooks/useHeaders";
 import { useAppDispatch, useAppSelect } from "@hooks/useStore";
 import { setMajor } from "@stores/userSlice";
-import API from "@utils/api";
 import { majors } from "@utils/majors";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
@@ -17,6 +16,7 @@ const SummaryBarBlock = styled.div`
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   border-top: 1px inset rgba(102, 103, 171, 0.4);
   z-index: 100;
@@ -28,16 +28,19 @@ const SummaryBarBlock = styled.div`
 
 const SummaryBarWrapper = styled.div`
   position: relative;
+  display: flex;
+  justify-content: space-between;
   margin: 0 auto;
   max-width: 1200px;
   width: 100%;
   padding: 0 4em;
 `;
 
-const Summary = (): JSX.Element => {
+const Summary = ({ lLectures }: { lLectures: Lecture[] }): JSX.Element => {
   const [totalCredit, setTotalCredit] = useState(0);
 
   const { studentId: sid, major } = useAppSelect((select) => select.user);
+  const result = useAppSelect((select) => select.result.data);
   const { fetch, put, post } = useHeaders();
 
   const fetchTotalCredit = async () => {
@@ -59,7 +62,7 @@ const Summary = (): JSX.Element => {
 
   useEffect(() => {
     fetchTotalCredit();
-  });
+  }, [result]);
 
   return (
     <SummaryBarBlock>
@@ -86,6 +89,11 @@ const Summary = (): JSX.Element => {
         </div>
         <div>{`총 ${totalCredit}학점`}</div>
       </SummaryBarWrapper>
+      <>
+        {lLectures.map((lecture) => {
+          return <div>{lecture.lecture_name}</div>;
+        })}
+      </>
     </SummaryBarBlock>
   );
 };

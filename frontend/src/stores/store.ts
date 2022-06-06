@@ -12,16 +12,18 @@ import {
 import storage from "redux-persist/lib/storage";
 import userReducer from "./userSlice";
 import toastReducer from "./toastSlice";
+import resultReducer from "./resultSlice";
 
 const reducers = combineReducers({
   user: userReducer,
   toast: toastReducer,
+  result: resultReducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user"],
+  whitelist: ["user", "result"],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);
