@@ -5,13 +5,7 @@ import { useAppDispatch } from "@hooks/useStore";
 import { setId, setMajor } from "@stores/userSlice";
 import { useNavigate } from "react-router-dom";
 import API from "@utils/api";
-
-// const FlexRow = styled.div`
-//   display: flex;
-//   flex-direction: row;
-//   align-items: center;
-//   justify-content: center;s
-// `;
+import { fetchLectures, fetchResult } from "@stores/resultSlice";
 
 const FlexColumn = styled.div`
   display: flex;
@@ -97,6 +91,8 @@ const Home = (): JSX.Element => {
       response?.data?.major
         ? dispatch(setMajor({ major: response.data.major }))
         : dispatch(setMajor({ major: null }));
+      dispatch(fetchLectures(curr));
+      dispatch(fetchResult(curr));
       navigate("/grad");
     }
   };

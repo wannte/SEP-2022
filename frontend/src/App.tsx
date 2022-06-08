@@ -4,6 +4,7 @@ import Home from "@pages/Home";
 import { GlobalStyle } from "@styles/global";
 import Grad from "@pages/Select";
 import Result from "@pages/Result";
+import Complete from "@pages/Complete";
 
 const MainRouter = (): JSX.Element => {
   return (
@@ -14,6 +15,7 @@ const MainRouter = (): JSX.Element => {
           <Route path="/" element={<Home />} />
           <Route path="grad" element={<Grad />} />
           <Route path="result" element={<Result />} />
+          <Route path="lectures" element={<Complete />}></Route>
         </Routes>
       </BrowserRouter>
     </>

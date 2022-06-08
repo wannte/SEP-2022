@@ -1,6 +1,6 @@
 import { useHeaders } from "@hooks/useHeaders";
 import { useAppDispatch, useAppSelect } from "@hooks/useStore";
-import { fetchResult } from "@stores/resultSlice";
+import { fetchLectures, fetchResult } from "@stores/resultSlice";
 import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 
@@ -74,6 +74,7 @@ const Lecture = (lecture: Lecture): JSX.Element => {
     learn ? del(`/users/lectures/${id}`) : post(`/users/lectures/${id}`, {});
     setLearn(!learn);
     dispatch(fetchResult(sid));
+    dispatch(fetchLectures(sid));
   };
 
   return (

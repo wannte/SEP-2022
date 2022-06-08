@@ -25,6 +25,8 @@ export const SelectBox = styled.select`
   border-radius: 2px;
   :hover {
     cursor: pointer;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
   }
   option {
   }

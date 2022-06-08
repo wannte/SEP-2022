@@ -61,3 +61,11 @@ interface Result {
   non_credit: NonCredit;
   research: Research;
 }
+
+interface LecturesAll {
+  [key: string]: test;
+}
+
+interface test {
+  [key: "spring" | "summer" | "fall" | "winter"]: Lecture[];
+}

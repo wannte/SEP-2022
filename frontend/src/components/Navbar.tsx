@@ -3,6 +3,7 @@ import styled from "styled-components";
 import logo from "@assets/logo.svg";
 import { useNavigate } from "react-router-dom";
 import { memo } from "react";
+import { useAppSelect } from "@hooks/useStore";
 
 const NavBarBlock = styled.div`
   color: black;
@@ -64,6 +65,7 @@ const MenuButton = styled.button`
 
 const Navbar = (): JSX.Element => {
   const navigate = useNavigate();
+  const major = useAppSelect((select) => select.user.major);
   return (
     <NavBarBlock>
       <NavWrapper>
@@ -72,7 +74,14 @@ const Navbar = (): JSX.Element => {
         </a>
         <Menu>
           <MenuButton onClick={() => navigate("/grad")}>선택</MenuButton>
-          <MenuButton onClick={() => navigate("/result")}>결과</MenuButton>
+          {major && (
+            <>
+              <MenuButton onClick={() => navigate("/lectures")}>
+                이수과목
+              </MenuButton>
+              <MenuButton onClick={() => navigate("/result")}>결과</MenuButton>
+            </>
+          )}
         </Menu>
       </NavWrapper>
     </NavBarBlock>

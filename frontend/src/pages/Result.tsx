@@ -88,10 +88,12 @@ const Result = (): JSX.Element => {
                         {localeSubTitle[elKey as keyof typeof localeSubTitle]}
                       </div>
                       <div style={{ fontSize: "1rem", fontWeight: "700" }}>
-                        {lectures.lectures.length
-                          ? lectures.credit === 0
-                            ? lectures.lectures.length + "학기 수강"
-                            : lectures.credit.toString() + "학점 이수"
+                        {lectures.lectures
+                          ? lectures.lectures.length
+                            ? lectures.credit === 0
+                              ? lectures.lectures.length + "학기 수강"
+                              : lectures.credit.toString() + "학점 이수"
+                            : ""
                           : ""}
                       </div>
                     </SubTitle>
@@ -110,7 +112,7 @@ const Result = (): JSX.Element => {
 };
 
 const Columns = ({ L }: { L: Lecture[] }): JSX.Element => {
-  if (L.length === 0)
+  if (!L || L.length === 0)
     return (
       <FlexBox>
         <div style={{ margin: "2rem 0" }}>수강한 강의가 없습니다.</div>

@@ -1,21 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import Lecture from "@components/Lecture";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import qs from "qs";
 import { useHeaders } from "@hooks/useHeaders";
 import { SelectBox } from "@components/common";
-import Summary from "@components/Summary";
 import { majors, Major } from "@utils/majors";
 import { useAppSelect } from "@hooks/useStore";
 import useDebounce from "@hooks/useDebounce";
-
-const FlexBox = styled.div`
-  min-height: calc(100vh - 130px - 6rem);
-  display: flexbox;
-  flex-wrap: wrap;
-  justify-content: space-between;
-`;
+import VLectureList from "@components/VLectureList";
+import SelectMajor from "@components/SelectMajor";
 
 const Container = styled.div`
   margin: auto;
@@ -37,28 +30,19 @@ const Title = styled.div`
 
 const FormWrapper = styled.div``;
 
-const NeedMajor = styled.div`
-  line-height: calc(100vh - 130px - 5rem);
-  text-align: center;
-  height: calc(100vh - 130px - 6rem);
-`;
-
 const SearchBox = styled.div`
   position: fixed;
-  bottom: 120px;
-  right: calc(2rem - 300px);
+  bottom: 60px;
+  left: calc(50vw - 150px);
   transition: 0.2s;
-  :hover {
-    right: -2rem;
-  }
   input {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.8);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.2);
     z-index: 100;
     text-align: center;
-    border-radius: 1rem 0 0 1rem;
+    border-radius: 1rem;
     padding-left: 1rem;
     padding-right: 4rem;
     border: none;
@@ -102,7 +86,6 @@ interface Options {
 const Select = (): JSX.Element => {
   const [lectures, setLectures] = useState<Array<Lecture>>([]);
   const [filteredLectures, setFilteredLectures] = useState<Array<Lecture>>([]);
-  const [learnedLectrues, setLearnedLectures] = useState<Array<Lecture>>([]);
   const [filter, setFilter] = useState("");
   const [options, setOptions] = useState<Options>({
     year: "2022",
@@ -110,7 +93,6 @@ const Select = (): JSX.Element => {
     major: "ALL",
   });
   const { major } = useAppSelect((select) => select.user);
-  const result = useAppSelect((select) => select.result.data);
   const { fetch } = useHeaders();
 
   const fetchLecture = async () => {
@@ -125,7 +107,8 @@ const Select = (): JSX.Element => {
     return lectures.filter(
       (lecture) =>
         lecture.lecture_code.includes(filter) ||
-        lecture.lecture_name.includes(filter)
+        lecture.lecture_name.includes(filter) ||
+        (filter === "!" && lecture.learned)
     );
   };
 
@@ -143,10 +126,6 @@ const Select = (): JSX.Element => {
     setFilter("");
   }, [options, major]);
 
-  useEffect(() => {
-    setLearnedLectures(lectures.filter((lecture) => lecture.learned));
-  }, [result, lectures]);
-
   return (
     <>
       <Container>
@@ -157,6 +136,7 @@ const Select = (): JSX.Element => {
             }학기 ${majors[options.major]}`}
           </Title>
           <FormWrapper>
+            <span>과목 선택</span>
             <SelectBox
               value={options.year}
               onChange={(e) => {
@@ -198,15 +178,8 @@ const Select = (): JSX.Element => {
             </SelectBox>
           </FormWrapper>
         </HeaderWrapper>
-        {major ? (
-          <FlexBox>
-            {filteredLectures.map((lecture, _idx) => (
-              <Lecture key={`lecture_${lecture.id}`} {...lecture} />
-            ))}
-          </FlexBox>
-        ) : (
-          <NeedMajor>전공을 선택해주세요</NeedMajor>
-        )}
+        <SelectMajor />
+        {major && <VLectureList lectures={filteredLectures} />}
       </Container>
       <SearchBox>
         <input
@@ -218,7 +191,6 @@ const Select = (): JSX.Element => {
         />
         <button onClick={() => setFilter("")}>×</button>
       </SearchBox>
-      {/* <Summary lLectures={learnedLectrues} /> */}
     </>
   );
 };
