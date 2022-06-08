@@ -16,7 +16,7 @@ required_science = {
 
 required_korean = ['GS1501', 'GS1511', 'GS1512', 'GS1513', 'GS1531', 'GS1532', 'GS1533', 'GS1534']
 
-required_english = ['GS1601', 'GS1603', 'GS2652']
+required_english = ['GS1601', 'GS1602', 'GS1603', 'GS1604', 'GS2652']
 
 choice_language_sw = ['GS1605', 'GS1606', 'GS2651', 'GS2653', 'GS2654', 'GS2655', 'GS3651', \
     'GS1490', 'GS1491', 'GS1492', 'GS2420', 'GS2421', 'GS1496', 'GS1497', 'GS1498']
