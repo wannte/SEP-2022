@@ -21,11 +21,3 @@ def get_lectures(year: str, semester: str, major: str, db: Session = Depends(get
     for lecture in lectures:
         lecture.learned = True if lecture.id in learned_ids else False
     return lectures
-
-# @rt.get('')
-# def test():
-#     return {'ping': 'pong'}
-
-# @rt.get('/test')
-# def test_db(db: Session = Depends(get_db)):
-#     return {'ok': True}

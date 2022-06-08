@@ -50,15 +50,6 @@ def get_data_from_csv():
     return lectures
 
 
-@rt.get('/setting')
-def setting(db: Session = Depends(get_db)):
-    for i in range(10):
-        lecture_code = 'EC400'+str(i)
-        newLecture = Lecture(lecture_code = lecture_code, lecture_name = '머신러닝과 딥러닝', year = '2022', semester = 'spring', required = False, major = 'EECS', credit = 3)
-        db.add(newLecture)
-    db.commit()
-    return
-
 @rt.post('/csv')
 def get_lecture_from_csv(db: Session = Depends(get_db)):
     db.query(Lecture).delete()
