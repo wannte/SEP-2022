@@ -1,4 +1,6 @@
 import { useHeaders } from "@hooks/useHeaders";
+import { useAppDispatch, useAppSelect } from "@hooks/useStore";
+import { fetchResult } from "@stores/resultSlice";
 import React, { useCallback, useState } from "react";
 import styled from "styled-components";
 
@@ -7,7 +9,7 @@ const ButtonWrapper = styled.div`
   box-sizing: content-box;
 `;
 
-const Button = styled.button<{ learn: boolean }>`
+const Button = styled.button<{ learn?: boolean }>`
   display: block;
   /* box-sizing: border-box; */
   position: relative;
@@ -65,13 +67,14 @@ const Name = styled.div`
 const Lecture = (lecture: Lecture): JSX.Element => {
   const { lecture_name, lecture_code, credit, id, learned } = lecture;
   const [learn, setLearn] = useState(learned);
-
   const { post, del } = useHeaders();
-
-  const handleClick = useCallback(() => {
+  const sid = useAppSelect((select) => select.user.studentId);
+  const dispatch = useAppDispatch();
+  const handleClick = () => {
     learn ? del(`/users/lectures/${id}`) : post(`/users/lectures/${id}`, {});
     setLearn(!learn);
-  }, [id, learn, del, post]);
+    dispatch(fetchResult(sid));
+  };
 
   return (
     <ButtonWrapper>
@@ -86,4 +89,29 @@ const Lecture = (lecture: Lecture): JSX.Element => {
   );
 };
 
-export default React.memo(Lecture);
+export const DLecture = (lecture: Omit<Lecture, "learned">): JSX.Element => {
+  const { lecture_name, lecture_code, credit } = lecture;
+  return (
+    <ButtonWrapper>
+      <Button>
+        <Label className="label">{lecture_code}</Label>
+        {credit && (
+          <Credit className="label" learn={true}>
+            {credit}
+          </Credit>
+        )}
+        <Name>{lecture_name}</Name>
+      </Button>
+    </ButtonWrapper>
+  );
+};
+
+// export default React.memo(
+//   Lecture,
+//   (prev, next) =>
+//     prev.lecture_code === next.lecture_code &&
+//     prev.learned === next.learned &&
+//     prev.id === next.id
+// );
+
+export default Lecture;

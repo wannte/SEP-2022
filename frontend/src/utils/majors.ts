@@ -7,6 +7,7 @@ export const majors = {
   MA: "신소재공학",
   MC: "기계공학",
   PS: "물리",
+  ALL: "전체",
 };
 
 export type Major = keyof typeof majors;

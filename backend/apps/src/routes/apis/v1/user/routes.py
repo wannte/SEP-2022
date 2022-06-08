@@ -341,7 +341,7 @@ def can_i_graduate(user: User = Depends(get_user), db: Session = Depends(get_db)
             'freshman_semina': form_data(other['freshman'])
         },
         'major': {
-            'reqruied': form_data(major['required']),
+            'required': form_data(major['required']),
             'non_required': form_data(major['non_required'])
         },
         'research': {

@@ -2,16 +2,18 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Navbar from "@components/Navbar";
 import Home from "@pages/Home";
 import { GlobalStyle } from "@styles/global";
-import Grad from "@pages/Grad";
+import Grad from "@pages/Select";
+import Result from "@pages/Result";
 
 const MainRouter = (): JSX.Element => {
   return (
     <>
-      <Navbar />
       <BrowserRouter>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="grad" element={<Grad />} />
+          <Route path="result" element={<Result />} />
         </Routes>
       </BrowserRouter>
     </>

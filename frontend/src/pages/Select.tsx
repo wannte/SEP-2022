@@ -9,32 +9,6 @@ import Summary from "@components/Summary";
 import { majors, Major } from "@utils/majors";
 import { useAppSelect } from "@hooks/useStore";
 import useDebounce from "@hooks/useDebounce";
-// const mockLectures: Array<Lecture> = [
-//   {
-//     lectureCode: "EC4219",
-//     lectureName: "소프트웨어 공학",
-//     lectureCredit: 3,
-//     learned: false,
-//   },
-//   {
-//     lectureCode: "EC4202",
-//     lectureName: "이산수학",
-//     lectureCredit: 3,
-//     learned: true,
-//   },
-//   {
-//     lectureCode: "EC3212",
-//     lectureName: "운영체제",
-//     lectureCredit: 3,
-//     learned: false,
-//   },
-//   {
-//     lectureCode: "EC3203",
-//     lectureName: "컴퓨터 시스템 이론 및 실습",
-//     lectureCredit: 4,
-//     learned: false,
-//   },
-// ];
 
 const FlexBox = styled.div`
   min-height: calc(100vh - 130px - 6rem);
@@ -42,6 +16,7 @@ const FlexBox = styled.div`
   flex-wrap: wrap;
   justify-content: space-between;
 `;
+
 const Container = styled.div`
   margin: auto;
   max-width: 1200px;
@@ -124,38 +99,40 @@ interface Options {
   major: Major;
 }
 
-const Grad = (): JSX.Element => {
+const Select = (): JSX.Element => {
   const [lectures, setLectures] = useState<Array<Lecture>>([]);
   const [filteredLectures, setFilteredLectures] = useState<Array<Lecture>>([]);
+  const [learnedLectrues, setLearnedLectures] = useState<Array<Lecture>>([]);
   const [filter, setFilter] = useState("");
   const [options, setOptions] = useState<Options>({
     year: "2022",
     semester: "spring",
-    major: "GS",
+    major: "ALL",
   });
-  const { studentId: sid, major } = useAppSelect((select) => select.user);
-
+  const { major } = useAppSelect((select) => select.user);
+  const result = useAppSelect((select) => select.result.data);
   const { fetch } = useHeaders();
 
   const fetchLecture = async () => {
     if (major) {
       const response = await fetch("/lectures?" + qs.stringify(options));
       setLectures(response.data);
-      setFilteredLectures(response.data);
+      setFilteredLectures(filterLectures(response.data, filter));
     }
   };
 
-  const debounceFilter = useDebounce({ value: filter, delay: 300 });
+  const filterLectures = (lectures: Lecture[], filter: string) => {
+    return lectures.filter(
+      (lecture) =>
+        lecture.lecture_code.includes(filter) ||
+        lecture.lecture_name.includes(filter)
+    );
+  };
 
+  const debounceFilter = useDebounce({ value: filter, delay: 300 });
   useEffect(() => {
     if (debounceFilter) {
-      setFilteredLectures(
-        lectures.filter(
-          (lecture) =>
-            lecture.lecture_code.includes(filter) ||
-            lecture.lecture_name.includes(filter)
-        )
-      );
+      setFilteredLectures(filterLectures(lectures, filter));
     } else {
       setFilteredLectures(lectures);
     }
@@ -163,7 +140,12 @@ const Grad = (): JSX.Element => {
 
   useEffect(() => {
     fetchLecture();
+    setFilter("");
   }, [options, major]);
+
+  useEffect(() => {
+    setLearnedLectures(lectures.filter((lecture) => lecture.learned));
+  }, [result, lectures]);
 
   return (
     <>
@@ -219,7 +201,7 @@ const Grad = (): JSX.Element => {
         {major ? (
           <FlexBox>
             {filteredLectures.map((lecture, _idx) => (
-              <Lecture key={`lecture_${lecture.lecture_code}`} {...lecture} />
+              <Lecture key={`lecture_${lecture.id}`} {...lecture} />
             ))}
           </FlexBox>
         ) : (
@@ -236,9 +218,9 @@ const Grad = (): JSX.Element => {
         />
         <button onClick={() => setFilter("")}>×</button>
       </SearchBox>
-      <Summary />
+      {/* <Summary lLectures={learnedLectrues} /> */}
     </>
   );
 };
 
-export default Grad;
+export default Select;
