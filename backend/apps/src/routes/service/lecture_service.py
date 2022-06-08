@@ -11,6 +11,22 @@ class LectureService():
         return list(map(lambda x: x.Lecture, lecture_learned))
 
     @staticmethod
+    def get_all_lectures_order_by_year_by_user_id(user_id: int, db: Session):
+        lectures = LectureService.get_all_lectures_by_user_id(user_id, db)
+        lecture_dict = {}
+        for lecture in lectures:
+            year = lecture.year
+            semester = lecture.semester
+            if year not in lecture_dict:
+                lecture_dict[year] = {semester: [lecture]}
+                continue
+            if semester not in lecture_dict[year]:
+                lecture_dict[year][semester] = [lecture]
+                continue
+            lecture_dict[year][semester].append(lecture)
+        return lecture_dict
+
+    @staticmethod
     def get_all_lectures_by_year_semester_user_id(year: str, semester: str, user_id: int, db: Session):
         learneds = db.query(Learned, Lecture) \
                     .join(Lecture, Learned.lecture_id == Lecture.id) \

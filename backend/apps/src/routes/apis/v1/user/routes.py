@@ -79,6 +79,17 @@ def get_user_lectures(year: str, semester: str, user: User = Depends(get_user), 
         return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
     return LectureService.get_all_lectures_by_year_semester_user_id(year, semester, user.id, db)
 
+
+@rt.get('/lectures/all', description="유저가 수강한 모든 강의 목록")
+def get_user_all_lectures(user: User = Depends(get_user), db: Session = Depends(get_db)):
+    if not user:
+        return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
+    lecture = LectureService.get_all_lectures_order_by_year_by_user_id(user.id, db)
+    if not lecture:
+        return JSONResponse(content={'ok': False, 'message': '수강한 과목이 없습니다.'})
+    return lecture
+
+
 @rt.post('/lectures/{lecture_id}')
 def add_lecture(lecture_id: int, user: User = Depends(get_user), db: Session = Depends(get_db)):
     if not user:
