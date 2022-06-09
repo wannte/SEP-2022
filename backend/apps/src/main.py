@@ -10,8 +10,8 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
-    "http://localhost:3000",
-    '*'
+    "http://localhost:3000"
+    # '*'
 ]
 
 from apps.src.routes.apis.v1.user import routes as user_routes

@@ -70,8 +70,10 @@ def change_major(major: str = Body(...), user: User = Depends(get_user), db: Ses
 def get_user_info(user: User = Depends(get_user), db: Session = Depends(get_db)):
     if not user:
         return JSONResponse(content={'ok': False, 'message': '없는 유저입니다.'}, status_code=401)
-    return user
-
+    return {
+        'student_id': user.student_id,
+        'major': user.major
+    }
 
 @rt.get('/lectures', description='해당 학기의 유저가 수강한 강의 목록')
 def get_user_lectures(year: str, semester: str, user: User = Depends(get_user), db: Session = Depends(get_db)):
