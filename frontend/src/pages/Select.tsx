@@ -93,6 +93,7 @@ const Select = (): JSX.Element => {
     major: "ALL",
   });
   const { major } = useAppSelect((select) => select.user);
+  const result = useAppSelect((select) => select.result.data);
   const { fetch } = useHeaders();
 
   const fetchLecture = async () => {
@@ -123,8 +124,7 @@ const Select = (): JSX.Element => {
 
   useEffect(() => {
     fetchLecture();
-    setFilter("");
-  }, [options, major]);
+  }, [options, major, result]);
 
   return (
     <>
@@ -140,7 +140,11 @@ const Select = (): JSX.Element => {
             <SelectBox
               value={options.year}
               onChange={(e) => {
-                setOptions({ ...options, year: e.target.value });
+                setOptions({
+                  ...options,
+                  semester: "spring",
+                  year: e.target.value,
+                });
               }}
             >
               {years.map((year) => (
@@ -155,7 +159,13 @@ const Select = (): JSX.Element => {
             >
               <option value="spring">봄학기</option>
               {parseInt(options.year) < 2022 && (
+                <option value="summer">여름학기</option>
+              )}
+              {parseInt(options.year) < 2022 && (
                 <option value="fall">가을학기</option>
+              )}
+              {parseInt(options.year) < 2022 && (
+                <option value="winter">겨울학기</option>
               )}
             </SelectBox>
             <SelectBox

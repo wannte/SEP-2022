@@ -115,4 +115,4 @@ export const DLecture = (lecture: Omit<Lecture, "learned">): JSX.Element => {
 //     prev.id === next.id
 // );
 
-export default Lecture;
+export default React.memo(Lecture);
